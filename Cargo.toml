@@ -1,0 +1,17 @@
+[package]
+name = "fabsegame"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy = { version = "0", default-features = false, features = [ 
+  "multi-threaded", "bevy_asset", "bevy_audio", "bevy_gilrs", "bevy_scene", 
+  "bevy_winit", "bevy_render", "bevy_core_pipeline", "bevy_gizmos", "bevy_sprite",        
+  "bevy_pbr", "bevy_gltf", "bevy_text", "bevy_ui", "bevy_animation", "tonemapping_luts", 
+  "default_font", "png", "hdr", "ktx2", "zstd", "vorbis", "wayland", "asset_processor" ] }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+panic = "abort"
+strip = true
