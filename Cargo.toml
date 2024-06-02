@@ -9,6 +9,7 @@ bevy = { version = "0", default-features = false, features = [
   "bevy_winit", "bevy_render", "bevy_core_pipeline", "bevy_gizmos", "bevy_sprite",        
   "bevy_pbr", "bevy_gltf", "bevy_text", "bevy_ui", "bevy_animation", "tonemapping_luts", 
   "default_font", "png", "hdr", "ktx2", "zstd", "vorbis", "wayland", "asset_processor" ] }
+rand = "0"
 
 [profile.release]
 codegen-units = 1
