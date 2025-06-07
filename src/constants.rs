@@ -2,6 +2,9 @@ use bevy::prelude::*;
 
 pub const BOUNDS: Vec2 = Vec2::new(1920.0, 1080.0);
 
+pub const CONTROLLER_DEADZONE: f32 = 0.01;
+pub const CONTROLLER_RUMBLE_DURATION_MS: u64 = 50;
+
 pub const ENEMY_FILENAME: &str = "flopa.png";
 pub const ENEMY_SIZE_MAX: f32 = 1024.0;
 pub const ENEMY_COUNT: u16 = 8;

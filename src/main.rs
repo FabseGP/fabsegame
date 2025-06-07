@@ -6,21 +6,33 @@ mod systems;
 mod window;
 
 use bevy::prelude::*;
-use components::player::{Enemy, Player};
+use components::player::{BoundsCollisionEvent, Enemy, Player, Position};
 use constants::{
 	BOUNDS, ENEMY_COUNT, ENEMY_FILENAME, ENEMY_SIZE_MAX, SPACESHIP_FILENAME, SPACESHIP_POSITION,
 	SPACESHIP_SIZE,
 };
-use systems::{enemy::snap_to_player_system, input::input_events, player::player_movement_system};
+use systems::{
+	collisions::{bounds_collision_detection_system, bounds_collision_rumble_system},
+	enemy::snap_to_player_system,
+	input::input_events,
+	player::player_movement_system,
+};
 use window::create_window;
 
 fn main() {
 	App::new()
 		.add_plugins(DefaultPlugins.set(create_window()))
+		.add_event::<BoundsCollisionEvent>()
 		.add_systems(Startup, setup)
+		.add_systems(Update, input_events)
 		.add_systems(
 			FixedUpdate,
-			(player_movement_system, snap_to_player_system, input_events),
+			(
+				player_movement_system,
+				snap_to_player_system,
+				bounds_collision_detection_system,
+				bounds_collision_rumble_system,
+			),
 		)
 		.run();
 }
@@ -49,6 +61,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 		},
 		Transform::from_xyz(SPACESHIP_POSITION.x, SPACESHIP_POSITION.y, 0.0),
 		Player,
+		Position(SPACESHIP_POSITION.extend(0.0)),
 	));
 
 	let horizontal_margin = BOUNDS.x.algebraic_div(2.0);
