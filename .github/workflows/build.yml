@@ -12,11 +12,11 @@ jobs:
     strategy:
       matrix:
         platform:
-          - os-name: Linux-x86_64
+          - os-name: linux-x86_64
             runs-on: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - os-name: Linux-aarch64
-            runs-on: ubuntu-latest
+          - os-name: linux-aarch64
+            runs-on: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
@@ -34,13 +34,13 @@ jobs:
         run: cp .cargo/config-ci.toml .cargo/config.toml
       - name: Install dependencies
         run: sudo apt-get install -y mold clang
-      - name: Build binary
-        uses: houseabsolute/actions-rust-cross@v1
+      - name: Setup toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          command: "build"
-          target: ${{ matrix.platform.target }}
-          args: "--release"
-          toolchain: "nightly"
+          toolchain: nightly
+          components: rustfmt, clippy, rust-src
+      - name: Build binary
+        run: cargo build --release
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
         with:
