@@ -3,48 +3,41 @@
 mod components;
 mod constants;
 mod systems;
+mod traits;
 mod window;
 
-use bevy::prelude::*;
-use components::player::{BoundsCollisionEvent, Enemy, Player, Position};
-use constants::{
-	BOUNDS, ENEMY_COUNT, ENEMY_FILENAME, ENEMY_SIZE_MAX, SPACESHIP_FILENAME, SPACESHIP_POSITION,
-	SPACESHIP_SIZE,
+use bevy::{asset::embedded_asset, prelude::*};
+use components::{
+	common::HealthBar,
+	enemy::{EnemyFireWeapon, EnemyWeaponImpact},
+	player::{PlayerBoundsImpact, PlayerFireWeapon, PlayerWeaponImpact},
 };
+use constants::{INFO_TEXT, MUSIC_FILENAME};
 use systems::{
-	collisions::{bounds_collision_detection_system, bounds_collision_rumble_system},
-	enemy::snap_to_player_system,
+	collisions::{
+		ammo_collision, ammo_translation, bounds_collision, bounds_impact, weapon_impact,
+	},
+	enemy::{enemy_movement, spawn_ammo, spawn_enemy},
 	input::input_events,
-	player::player_movement_system,
+	player::{player_ammo, player_health, player_movement, spawn_player, update_health_bar},
 };
 use window::create_window;
 
-fn main() {
-	App::new()
-		.add_plugins(DefaultPlugins.set(create_window()))
-		.add_event::<BoundsCollisionEvent>()
-		.add_systems(Startup, setup)
-		.add_systems(Update, input_events)
-		.add_systems(
-			FixedUpdate,
-			(
-				player_movement_system,
-				snap_to_player_system,
-				bounds_collision_detection_system,
-				bounds_collision_rumble_system,
-			),
-		)
-		.run();
+struct EmbeddedAssetPlugin;
+
+impl Plugin for EmbeddedAssetPlugin {
+	fn build(&self, app: &mut App) {
+		embedded_asset!(app, "assets/ammo.webp");
+	}
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-	let ship_handle = asset_server.load(SPACESHIP_FILENAME);
-	let enemy_handle = asset_server.load(ENEMY_FILENAME);
-
+fn spawn_camera(mut commands: Commands) {
 	commands.spawn(Camera2d);
+}
 
+fn spawn_info_text(mut commands: Commands) {
 	commands.spawn((
-		Text::new("Up Arrow: Move Forward\nLeft / Right Arrow: Turn"),
+		Text::new(INFO_TEXT),
 		Node {
 			position_type: PositionType::Absolute,
 			top: Val::Px(12.0),
@@ -52,44 +45,65 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 			..default()
 		},
 	));
+}
 
+fn spawn_music(mut commands: Commands, assets_server: Res<AssetServer>) {
+	commands.spawn(AudioPlayer::new(assets_server.load(MUSIC_FILENAME)));
+}
+
+fn spawn_health_bar(mut commands: Commands) {
 	commands.spawn((
 		Sprite {
-			image: ship_handle,
-			custom_size: Some(SPACESHIP_SIZE),
+			color: Color::srgb(0.2, 0.8, 0.2),
+			custom_size: Some(Vec2::new(200.0, 20.0)),
 			..Default::default()
 		},
-		Transform::from_xyz(SPACESHIP_POSITION.x, SPACESHIP_POSITION.y, 0.0),
-		Player,
-		Position(SPACESHIP_POSITION.extend(0.0)),
+		Transform::from_xyz(0.0, 0.0, 0.1),
+		HealthBar,
 	));
+}
 
-	let horizontal_margin = BOUNDS.x.algebraic_div(2.0);
-	let vertical_margin = BOUNDS.y.algebraic_div(2.0);
-	let enemy_size = vec2(
-		ENEMY_SIZE_MAX.algebraic_div(f32::from(ENEMY_COUNT)),
-		ENEMY_SIZE_MAX.algebraic_div(f32::from(ENEMY_COUNT)),
-	);
-
-	for i in 0..ENEMY_COUNT {
-		commands.spawn((
-			Sprite {
-				image: enemy_handle.clone(),
-				custom_size: Some(enemy_size),
-				..Default::default()
-			},
-			Transform::from_xyz(
-				horizontal_margin.algebraic_sub(f32::max(
-					enemy_size.y.algebraic_mul(f32::from(i)),
-					horizontal_margin
-						.algebraic_div(f32::from(ENEMY_COUNT))
-						.algebraic_mul(f32::from(i))
-						.algebraic_mul(2.0),
-				)),
-				vertical_margin,
-				0.0,
+fn main() {
+	App::new()
+		.add_plugins((DefaultPlugins.set(create_window()), EmbeddedAssetPlugin))
+		.add_event::<PlayerBoundsImpact>()
+		.add_event::<PlayerFireWeapon>()
+		.add_event::<PlayerWeaponImpact>()
+		.add_event::<EnemyFireWeapon>()
+		.add_event::<EnemyWeaponImpact>()
+		.add_systems(
+			Startup,
+			(
+				spawn_camera,
+				spawn_info_text,
+				spawn_music,
+				spawn_player,
+				spawn_enemy,
+				spawn_health_bar,
+			)
+				.chain(),
+		)
+		.add_systems(
+			Update,
+			(
+				input_events,
+				bounds_impact,
+				weapon_impact,
+				player_health,
+				update_health_bar,
 			),
-			Enemy,
-		));
-	}
+		)
+		.add_systems(
+			FixedUpdate,
+			(
+				player_movement,
+				enemy_movement,
+				bounds_collision,
+				ammo_collision,
+				spawn_ammo,
+				player_ammo,
+				ammo_translation,
+			),
+		)
+		.run();
 }

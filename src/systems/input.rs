@@ -1,52 +1,61 @@
 use bevy::prelude::*;
 
 use crate::{
-	components::player::{InputData, Player},
-	constants::{CONTROLLER_DEADZONE, SPACESHIP_ROTATION_STEP, SPACESHIP_SPEED_STEP},
+	components::{
+		common::{MovementRotation, MovementSpeed},
+		player::{Player, PlayerFireWeapon},
+	},
+	constants::{CONTROLLER_DEADZONE, SPACESHIP_ROTATION_INCREMENT, SPACESHIP_SPEED_INCREMENT},
+	traits::F32Component as _,
 };
 
 pub fn input_events(
 	keyboard_input: Res<ButtonInput<KeyCode>>,
-	gamepads: Query<&Gamepad>,
-	mut ship: Single<InputData, With<Player>>,
+	gamepad_query_opt: Option<Single<&Gamepad>>,
+	player_query: Single<(&mut MovementSpeed, &mut MovementRotation), With<Player>>,
+	mut weapon_event: EventWriter<PlayerFireWeapon>,
 ) {
+	let (mut player_velocity, mut player_rotation) = player_query.into_inner();
+
 	if keyboard_input.any_pressed([KeyCode::ArrowUp, KeyCode::KeyW]) {
-		ship.velocity.0 = SPACESHIP_SPEED_STEP;
+		player_velocity.set(SPACESHIP_SPEED_INCREMENT);
 	} else if keyboard_input.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
-		ship.velocity.0 = -SPACESHIP_SPEED_STEP;
+		player_velocity.set(-SPACESHIP_SPEED_INCREMENT);
 	}
 
 	if keyboard_input.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
-		ship.rotation.0 = SPACESHIP_ROTATION_STEP;
+		player_rotation.set(SPACESHIP_ROTATION_INCREMENT);
 	} else if keyboard_input.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
-		ship.rotation.0 = -SPACESHIP_ROTATION_STEP;
+		player_rotation.set(-SPACESHIP_ROTATION_INCREMENT);
 	}
 
-	for gamepad in gamepads {
-		if gamepad.pressed(GamepadButton::DPadUp) {
-			ship.velocity.0 = SPACESHIP_SPEED_STEP;
-		} else if gamepad.pressed(GamepadButton::DPadDown) {
-			ship.velocity.0 = -SPACESHIP_SPEED_STEP;
-		}
-		if gamepad.pressed(GamepadButton::DPadLeft) {
-			ship.rotation.0 = SPACESHIP_ROTATION_STEP;
-		} else if gamepad.pressed(GamepadButton::DPadRight) {
-			ship.rotation.0 = -SPACESHIP_ROTATION_STEP;
-		}
+	if keyboard_input.pressed(KeyCode::Space) {
+		weapon_event.write_default();
+	}
 
+	if let Some(gamepad) = gamepad_query_opt {
 		if let Some(left_stick_y) = gamepad.get(GamepadAxis::LeftStickY)
 			&& left_stick_y.abs() > CONTROLLER_DEADZONE
 		{
-			ship.velocity.0 = left_stick_y
-				.algebraic_mul(SPACESHIP_SPEED_STEP)
-				.algebraic_mul(2.0);
+			player_velocity.set(left_stick_y.algebraic_mul(SPACESHIP_SPEED_INCREMENT));
+		} else if gamepad.pressed(GamepadButton::DPadUp) {
+			player_velocity.set(SPACESHIP_SPEED_INCREMENT);
+		} else if gamepad.pressed(GamepadButton::DPadDown) {
+			player_velocity.set(-SPACESHIP_SPEED_INCREMENT);
 		}
+
 		if let Some(left_stick_x) = gamepad.get(GamepadAxis::LeftStickX)
 			&& left_stick_x.abs() > CONTROLLER_DEADZONE
 		{
-			ship.rotation.0 = -left_stick_x
-				.algebraic_mul(SPACESHIP_ROTATION_STEP)
-				.algebraic_mul(2.0);
+			player_rotation.set(-left_stick_x.algebraic_mul(SPACESHIP_ROTATION_INCREMENT));
+		} else if gamepad.pressed(GamepadButton::DPadLeft) {
+			player_rotation.set(SPACESHIP_ROTATION_INCREMENT);
+		} else if gamepad.pressed(GamepadButton::DPadRight) {
+			player_rotation.set(-SPACESHIP_ROTATION_INCREMENT);
+		}
+
+		if gamepad.pressed(GamepadButton::South) {
+			weapon_event.write_default();
 		}
 	}
 }
