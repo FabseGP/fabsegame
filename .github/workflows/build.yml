@@ -23,6 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Generate changelog
+        if: matrix.platform.os-name == 'linux-x86_64'
         uses: orhun/git-cliff-action@v3
         with:
           config: cliff.toml
