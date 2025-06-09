@@ -30,8 +30,11 @@ jobs:
         env:
           OUTPUT: CHANGELOG.md
           GITHUB_REPO: ${{ github.repository }}
+      - name: Modify cargo config for CI
+        run: |
+          sed -i 's/rustflags = \["-Ctarget-cpu=native", "-Clink-arg=--ld-path=wild"\]/rustflags = ["-Ctarget-cpu=native, "-Clink-arg=--fuse-ld=mold"]/' .cargo/config.toml
       - name: Install dependencies
-        run: sudo apt-get install -y wild clang
+        run: sudo apt-get install -y mold clang
       - name: Build binary
         uses: houseabsolute/actions-rust-cross@v1
         with:
