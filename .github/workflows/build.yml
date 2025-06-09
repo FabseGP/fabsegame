@@ -34,7 +34,18 @@ jobs:
       - name: Use CI cargo config
         run: cp .cargo/config-ci.toml .cargo/config.toml
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y mold clang libwayland-dev libxkbcommon-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            mold \
+            clang \
+            pkg-config \
+            libwayland-dev \
+            libxkbcommon-dev \
+            libasound2-dev \
+            libudev-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev 
       - name: Setup toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
