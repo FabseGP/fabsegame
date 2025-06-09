@@ -18,6 +18,9 @@ jobs:
           - os-name: linux-aarch64
             runs-on: ubuntu-24.04-arm
             target: aarch64-unknown-linux-gnu
+          - os-name: windows-x86_64
+            runs-on: ubuntu-latest
+            target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.platform.runs-on }}
     steps:
       - name: Checkout
@@ -45,18 +48,32 @@ jobs:
             libasound2-dev \
             libudev-dev \
             libfontconfig1-dev \
-            libfreetype6-dev 
+            libfreetype6-dev
       - name: Setup toolchain
+        if: matrix.platform.os-name != 'windows-x86_64'
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: nightly
           components: rustfmt, clippy, rust-src
+      - name: Setup toolchain for cross-compilation
+        if: matrix.platform.os-name == 'windows-x86_64'
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+          target: x86_64-pc-windows-msvc
+          components: rustfmt, clippy, rust-src, llvm-tools
       - name: Build binary
+        if: matrix.platform.os-name != 'windows-x86_64'
         run: cargo build --release
+      - name: Build binary for Windows
+        if: matrix.platform.os-name = 'windows-x86_64'
+        run: |
+          cargo install cargo-xwin
+          cargo xwin build --target x86_64-pc-windows-msvc --release
       - name: Publish artifacts and release
         uses: houseabsolute/actions-rust-release@v0
         with:
-          executable-name: space-invaders-remastered
+          executable-name: fabsegame_v2
           changes-file: "CHANGELOG.md"
           target: ${{ matrix.platform.target }}
 
