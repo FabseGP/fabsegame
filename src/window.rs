@@ -1,4 +1,7 @@
-use bevy::{prelude::*, window::CursorOptions};
+use bevy::{
+	prelude::*,
+	window::{CursorOptions, WindowMode},
+};
 
 use crate::constants::WINDOW_TITLE;
 
@@ -10,6 +13,7 @@ pub fn create_window() -> WindowPlugin {
 				..Default::default()
 			},
 			title: WINDOW_TITLE.to_owned(),
+			mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
 			..default()
 		}),
 		..default()

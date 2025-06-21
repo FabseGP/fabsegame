@@ -6,13 +6,17 @@ mod systems;
 mod traits;
 mod window;
 
-use bevy::{asset::embedded_asset, prelude::*};
+use bevy::{
+	asset::embedded_asset,
+	prelude::*,
+	window::{PrimaryWindow, WindowResized},
+};
 use components::{
-	common::HealthBar,
-	enemy::{EnemyFireWeapon, EnemyWeaponImpact},
+	common::{GameBounds, HealthBar, WeaponCooldown},
+	enemy::EnemyWeaponImpact,
 	player::{PlayerBoundsImpact, PlayerFireWeapon, PlayerWeaponImpact},
 };
-use constants::{INFO_TEXT, MUSIC_FILENAME};
+use constants::{INFO_TEXT, MUSIC_FILENAME, WINDOW_BOUNDS, WINDOW_BOUNDS_MINIMUM_IMPACT};
 use systems::{
 	collisions::{
 		ammo_collision, ammo_translation, bounds_collision, bounds_impact, weapon_impact,
@@ -63,17 +67,42 @@ fn spawn_health_bar(mut commands: Commands) {
 	));
 }
 
+fn tick_cooldowns(mut cooldowns_query: Query<&mut WeaponCooldown>, time: Res<Time>) {
+	for mut cooldown in &mut cooldowns_query {
+		cooldown.tick(time.delta());
+	}
+}
+
+fn setup_bounds(mut commands: Commands, window_query: Single<&Window, With<PrimaryWindow>>) {
+	let window_size = Vec2::new(window_query.width(), window_query.height());
+	commands.insert_resource(GameBounds::new(
+		window_size,
+		WINDOW_BOUNDS,
+		WINDOW_BOUNDS_MINIMUM_IMPACT,
+	));
+}
+
+fn update_bounds_on_resize(
+	mut bounds: ResMut<GameBounds>,
+	mut resize_events: EventReader<WindowResized>,
+) {
+	for event in resize_events.read() {
+		let window_size = Vec2::new(event.width, event.height);
+		bounds.update(window_size);
+	}
+}
+
 fn main() {
 	App::new()
 		.add_plugins((DefaultPlugins.set(create_window()), EmbeddedAssetPlugin))
 		.add_event::<PlayerBoundsImpact>()
 		.add_event::<PlayerFireWeapon>()
 		.add_event::<PlayerWeaponImpact>()
-		.add_event::<EnemyFireWeapon>()
 		.add_event::<EnemyWeaponImpact>()
 		.add_systems(
 			Startup,
 			(
+				setup_bounds,
 				spawn_camera,
 				spawn_info_text,
 				spawn_music,
@@ -91,6 +120,8 @@ fn main() {
 				weapon_impact,
 				player_health,
 				update_health_bar,
+				tick_cooldowns,
+				update_bounds_on_resize,
 			),
 		)
 		.add_systems(

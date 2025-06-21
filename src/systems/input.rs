@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
 	components::{
-		common::{MovementRotation, MovementSpeed},
+		common::{MovementRotation, MovementSpeed, WeaponCooldown},
 		player::{Player, PlayerFireWeapon},
 	},
 	constants::{CONTROLLER_DEADZONE, SPACESHIP_ROTATION_INCREMENT, SPACESHIP_SPEED_INCREMENT},
@@ -12,10 +12,23 @@ use crate::{
 pub fn input_events(
 	keyboard_input: Res<ButtonInput<KeyCode>>,
 	gamepad_query_opt: Option<Single<&Gamepad>>,
-	player_query: Single<(&mut MovementSpeed, &mut MovementRotation), With<Player>>,
+	player_query: Single<
+		(
+			&mut MovementSpeed,
+			&mut MovementRotation,
+			&mut WeaponCooldown,
+		),
+		With<Player>,
+	>,
 	mut weapon_event: EventWriter<PlayerFireWeapon>,
+	mut exit: EventWriter<AppExit>,
 ) {
-	let (mut player_velocity, mut player_rotation) = player_query.into_inner();
+	let (mut player_velocity, mut player_rotation, mut player_weapon_cooldown) =
+		player_query.into_inner();
+
+	if keyboard_input.pressed(KeyCode::Escape) {
+		exit.write(AppExit::Success);
+	}
 
 	if keyboard_input.any_pressed([KeyCode::ArrowUp, KeyCode::KeyW]) {
 		player_velocity.set(SPACESHIP_SPEED_INCREMENT);
@@ -29,8 +42,9 @@ pub fn input_events(
 		player_rotation.set(-SPACESHIP_ROTATION_INCREMENT);
 	}
 
-	if keyboard_input.pressed(KeyCode::Space) {
+	if keyboard_input.pressed(KeyCode::Space) && player_weapon_cooldown.finished() {
 		weapon_event.write_default();
+		player_weapon_cooldown.reset();
 	}
 
 	if let Some(gamepad) = gamepad_query_opt {
@@ -54,8 +68,14 @@ pub fn input_events(
 			player_rotation.set(-SPACESHIP_ROTATION_INCREMENT);
 		}
 
-		if gamepad.pressed(GamepadButton::South) {
+		if gamepad.any_pressed([
+			GamepadButton::South,
+			GamepadButton::LeftTrigger2,
+			GamepadButton::RightTrigger2,
+		]) && player_weapon_cooldown.finished()
+		{
 			weapon_event.write_default();
+			player_weapon_cooldown.reset();
 		}
 	}
 }

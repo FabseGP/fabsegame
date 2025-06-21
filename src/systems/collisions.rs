@@ -9,13 +9,13 @@ use crate::{
 	components::{
 		common::{
 			AmmoDamage, AmmoDirection, AmmoDistanceTraveled, AmmoRange, AmmoSize, AmmoSpeed,
-			BoundsDamage, ShipHealth,
+			BoundsDamage, GameBounds, ShipHealth,
 		},
 		enemy::{Enemy, EnemyAmmo, EnemyWeapon},
 		player::{Player, PlayerAmmo, PlayerBoundsImpact, PlayerWeapon, PlayerWeaponImpact},
 	},
-	constants::{BOUNDS_EXTENTS, BOUNDS_MARGIN, CONTROLLER_RUMBLE_DURATION_MS},
-	traits::{F32Component as _, Vec2Component as _},
+	constants::CONTROLLER_RUMBLE_DURATION_MS,
+	traits::{F32Component as _, Vec2Component as _, Vec3Component as _},
 };
 
 pub fn ammo_collision(
@@ -63,6 +63,7 @@ pub fn ammo_collision(
 
 pub fn bounds_collision(
 	mut bounds_impact_event: EventWriter<PlayerBoundsImpact>,
+	bounds: Res<GameBounds>,
 	player_query: Single<(&Transform, &mut ShipHealth, &BoundsDamage), With<Player>>,
 ) {
 	let (player_transform, mut player_health, player_bounds_damage) = player_query.into_inner();
@@ -70,16 +71,16 @@ pub fn bounds_collision(
 		.translation
 		.x
 		.abs()
-		.algebraic_sub(BOUNDS_EXTENTS.x))
-	.abs() < BOUNDS_MARGIN
+		.algebraic_sub(bounds.extents.x))
+	.abs() < bounds.minimum_impact
 		|| (player_transform
 			.translation
 			.y
 			.abs()
-			.algebraic_sub(BOUNDS_EXTENTS.y))
-		.abs() < BOUNDS_MARGIN
+			.algebraic_sub(bounds.extents.y))
+		.abs() < bounds.minimum_impact
 	{
-		player_health.sub(player_bounds_damage.0);
+		player_health.sub(player_bounds_damage.get());
 		bounds_impact_event.write_default();
 	}
 }
@@ -118,6 +119,7 @@ pub fn weapon_impact(
 
 pub fn ammo_translation(
 	time: Res<Time>,
+	bounds: Res<GameBounds>,
 
 	mut commands: Commands,
 	ammo_query: Query<
@@ -144,15 +146,13 @@ pub fn ammo_translation(
 		ammo_direction,
 	) in ammo_query
 	{
-		//		let movement_direction = ammo_transform.rotation.mul_vec3(Vec3::Y);
-
 		let movement_distance = ammo_speed.get().algebraic_mul(time.delta_secs());
 
-		ammo_transform.translation += ammo_direction.0 * movement_distance;
+		ammo_transform.translation += ammo_direction.value() * movement_distance;
 
 		ammo_distance_traveled.add(movement_distance);
 
-		let translation_cmp = ammo_transform.translation.xy().abs().cmpge(BOUNDS_EXTENTS);
+		let translation_cmp = ammo_transform.translation.xy().abs().cmpge(bounds.extents);
 
 		if translation_cmp.x
 			|| translation_cmp.y

@@ -3,32 +3,36 @@ use bevy::prelude::*;
 use crate::{
 	components::{
 		common::{
-			AmmoDirection, AmmoSize, HealthBar, MaxRotation, MaxSpeed, MovementRotation,
-			MovementSpeed, ShipHealth, ShipSize,
+			AmmoDirection, AmmoSize, GameBounds, HealthBar, MaxRotation, MaxSpeed,
+			MovementRotation, MovementSpeed, ShipHealth, ShipSize,
 		},
 		player::{Player, PlayerAmmo, PlayerFireWeapon},
 	},
 	constants::{
-		AMMO_PATH, BOUNDS_EXTENTS, SPACESHIP_FILENAME, SPACESHIP_HEALTH, SPACESHIP_POSITION,
-		SPACESHIP_ROTATION_BOUND, SPACESHIP_SIZE,
+		AMMO_PATH, SPACESHIP_FILENAME, SPACESHIP_HEALTH, SPACESHIP_ROTATION_BOUND, SPACESHIP_SIZE,
 	},
 	traits::{F32Component as _, Vec2Component as _},
 };
 
-pub fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn spawn_player(
+	mut commands: Commands,
+	bounds: Res<GameBounds>,
+	asset_server: Res<AssetServer>,
+) {
 	commands.spawn((
 		Sprite {
 			image: asset_server.load(SPACESHIP_FILENAME),
 			custom_size: Some(SPACESHIP_SIZE),
 			..Default::default()
 		},
-		Transform::from_xyz(SPACESHIP_POSITION.x, SPACESHIP_POSITION.y, 0.0),
+		Transform::from_xyz(0.0, -bounds.extents.y.algebraic_add(1.0), 0.0),
 		Player,
 	));
 }
 
 pub fn player_movement(
 	time: Res<Time>,
+	bounds: Res<GameBounds>,
 	player_query: Single<
 		(
 			&mut Transform,
@@ -50,28 +54,27 @@ pub fn player_movement(
 
 	let rotation_value = player_rotation
 		.get()
-		.algebraic_mul(player_max_rotation.0)
+		.algebraic_mul(player_max_rotation.get())
 		.algebraic_mul(time.delta_secs())
 		.clamp(-SPACESHIP_ROTATION_BOUND, SPACESHIP_ROTATION_BOUND);
 
 	player_transform.rotate_z(rotation_value);
 
-	player_rotation.reset();
-
 	let movement_direction = player_transform.rotation.mul_vec3(Vec3::Y);
 
 	let movement_distance = player_velocity
 		.get()
-		.algebraic_mul(player_max_velocity.0)
+		.algebraic_mul(player_max_velocity.get())
 		.algebraic_mul(time.delta_secs());
 
 	player_transform.translation += movement_direction * movement_distance;
 
-	let extents = Vec3::from((BOUNDS_EXTENTS, 0.0));
+	let extents = Vec3::from((bounds.extents, 0.0));
 	let translation_bounded = player_transform.translation.clamp(-extents, extents);
 
 	player_transform.translation = translation_bounded;
 
+	player_rotation.reset();
 	player_velocity.reset();
 }
 
@@ -88,7 +91,7 @@ pub fn player_ammo(
 	let spawn_offset_distance = player_size
 		.get_y()
 		.algebraic_div(2.0)
-		.algebraic_add(ammo_size.0.y.algebraic_div(2.0));
+		.algebraic_add(ammo_size.get_y().algebraic_div(2.0));
 	let spawn_offset = player_rotation * spawn_offset_distance;
 
 	let spawn_position = player_transform.translation + spawn_offset;
@@ -97,7 +100,7 @@ pub fn player_ammo(
 		commands.spawn((
 			Sprite {
 				image: ammo_handle.clone(),
-				custom_size: Some(ammo_size.0),
+				custom_size: Some(ammo_size.value()),
 				..Default::default()
 			},
 			Transform::from_translation(spawn_position),

@@ -1,16 +1,16 @@
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
-rustflags = ["-Ctarget-cpu=x86-64-v3", "-Clinker-arg=fuse-ld=mold", "-A", "dead_code"]
+rustflags = ["-Ctarget-cpu=x86-64-v3", "-Clinker-arg=fuse-ld=mold"]
 
 [target.aarch64-unknown-linux-gnu]
 linker = "clang"
-rustflags = ["-Ctarget-cpu=native", "-Clinker-arg=fuse-ld=mold", "-A", "dead_code"]
+rustflags = ["-Ctarget-cpu=native", "-Clinker-arg=fuse-ld=mold"]
 
 [target.wasm32-unknown-unknown]
-rustflags = ["-Ctarget-cpu=generic", "-A", "dead_code"]
+rustflags = ["-Ctarget-cpu=generic"]
 
 [build]
-rustflags = ["-Z", "threads=8", "-A", "dead_code"]
+rustflags = ["-Z", "threads=8"]
 
 [unstable]
 gc = true

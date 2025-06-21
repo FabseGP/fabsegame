@@ -184,3 +184,30 @@ impl WeaponCooldown {
 		self.0.reset();
 	}
 }
+
+#[derive(Resource)]
+pub struct GameBounds {
+	pub bounds: Vec2,
+	pub extents: Vec2,
+	pub margin: f32,
+	pub minimum_impact: f32,
+}
+
+impl GameBounds {
+	pub fn new(window_size: Vec2, margin: f32, minimum_impact: f32) -> Self {
+		let bounds = window_size - Vec2::splat(margin.algebraic_mul(2.0));
+		let extents = bounds / 2.0;
+
+		Self {
+			bounds,
+			extents,
+			margin,
+			minimum_impact,
+		}
+	}
+
+	pub fn update(&mut self, window_size: Vec2) {
+		self.bounds = window_size - Vec2::splat(self.margin.algebraic_mul(2.0));
+		self.extents = self.bounds / 2.0;
+	}
+}

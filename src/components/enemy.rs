@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
 use super::common::{
-	AmmoDamage, AmmoDirection, AmmoDistanceTraveled, AmmoRange, AmmoSize, AmmoSpeed, ShipHealth,
-	ShipSize, WeaponCooldown,
+	AmmoDamage, AmmoDirection, AmmoDistanceTraveled, AmmoRange, AmmoSize, AmmoSpeed, MaxSpeed,
+	ShipHealth, ShipSize, WeaponCooldown,
 };
 use crate::constants::{
-	BOUNDS_DAMAGE, ENEMY_AMMO_DAMAGE, ENEMY_AMMO_RANGE, ENEMY_AMMO_SIZE, ENEMY_AMMO_SPEED,
-	ENEMY_HEALTH, ENEMY_WEAPON_COOLDOWN,
+	ENEMY_AMMO_DAMAGE, ENEMY_AMMO_RANGE, ENEMY_AMMO_SIZE, ENEMY_AMMO_SPEED, ENEMY_HEALTH,
+	ENEMY_SPEED, ENEMY_WEAPON_COOLDOWN,
 };
 
 const fn default_enemy_ammo_speed() -> f32 {
@@ -33,10 +33,6 @@ const fn default_enemy_ammo_direction() -> Vec3 {
 	Vec3::new(0.0, 0.0, 0.0)
 }
 
-const fn default_enemy_bounds_damage() -> f32 {
-	BOUNDS_DAMAGE
-}
-
 const fn default_enemy_health() -> f32 {
 	ENEMY_HEALTH
 }
@@ -45,8 +41,9 @@ fn default_enemy_weapon_cooldown() -> Timer {
 	Timer::from_seconds(ENEMY_WEAPON_COOLDOWN, TimerMode::Once)
 }
 
-#[derive(Event, Default)]
-pub struct EnemyFireWeapon;
+const fn default_enemy_max_speed() -> f32 {
+	ENEMY_SPEED
+}
 
 #[derive(Event, Default)]
 pub struct EnemyWeaponImpact;
@@ -67,5 +64,10 @@ pub struct EnemyAmmo;
 pub struct EnemyWeapon;
 
 #[derive(Component, Default)]
-#[require(ShipHealth(default_enemy_health()), ShipSize, EnemyWeapon)]
+#[require(
+	ShipHealth(default_enemy_health()),
+	MaxSpeed(default_enemy_max_speed()),
+	ShipSize,
+	EnemyWeapon
+)]
 pub struct Enemy;

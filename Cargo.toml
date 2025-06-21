@@ -93,6 +93,7 @@ panic = "abort"
 
 [profile.dev]
 panic = "abort"
+debug = "line-tables-only"
 opt-level = 1
 
 [profile.dev.package."*"]

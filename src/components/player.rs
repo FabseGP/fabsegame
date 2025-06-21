@@ -5,9 +5,9 @@ use super::common::{
 	MaxRotation, MaxSpeed, MovementRotation, MovementSpeed, ShipHealth, ShipSize, WeaponCooldown,
 };
 use crate::constants::{
-	BOUNDS_DAMAGE, SPACESHIP_AMMO_DAMAGE, SPACESHIP_AMMO_RANGE, SPACESHIP_AMMO_SIZE,
-	SPACESHIP_AMMO_SPEED, SPACESHIP_HEALTH, SPACESHIP_ROTATION, SPACESHIP_SIZE, SPACESHIP_SPEED,
-	SPACESHIP_WEAPON_COOLDOWN,
+	SPACESHIP_AMMO_DAMAGE, SPACESHIP_AMMO_RANGE, SPACESHIP_AMMO_SIZE, SPACESHIP_AMMO_SPEED,
+	SPACESHIP_HEALTH, SPACESHIP_ROTATION, SPACESHIP_SIZE, SPACESHIP_SPEED,
+	SPACESHIP_WEAPON_COOLDOWN, WINDOW_BOUNDS_DAMAGE,
 };
 
 const fn default_player_ammo_speed() -> f32 {
@@ -39,7 +39,7 @@ const fn default_player_health() -> f32 {
 }
 
 const fn default_player_bounds_damage() -> f32 {
-	BOUNDS_DAMAGE
+	WINDOW_BOUNDS_DAMAGE
 }
 
 const fn default_player_size() -> Vec2 {
