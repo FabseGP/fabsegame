@@ -80,7 +80,7 @@ pub fn player_movement(
 
 pub fn player_ammo(
 	mut commands: Commands,
-	mut ammo_event: EventReader<PlayerFireWeapon>,
+	mut ammo_event: MessageReader<PlayerFireWeapon>,
 	assets_server: Res<AssetServer>,
 	player_query: Single<(&Transform, &ShipSize, &AmmoSize), With<Player>>,
 ) {
@@ -112,7 +112,7 @@ pub fn player_ammo(
 
 pub fn player_health(
 	player_query: Single<&ShipHealth, With<Player>>,
-	mut exit: EventWriter<AppExit>,
+	mut exit: MessageWriter<AppExit>,
 ) {
 	if player_query.0 <= 0.0 {
 		exit.write(AppExit::Success);

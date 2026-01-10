@@ -20,8 +20,8 @@ pub fn input_events(
 		),
 		With<Player>,
 	>,
-	mut weapon_event: EventWriter<PlayerFireWeapon>,
-	mut exit: EventWriter<AppExit>,
+	mut weapon_event: MessageWriter<PlayerFireWeapon>,
+	mut exit: MessageWriter<AppExit>,
 ) {
 	let (mut player_velocity, mut player_rotation, mut player_weapon_cooldown) =
 		player_query.into_inner();

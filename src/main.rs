@@ -84,7 +84,7 @@ fn setup_bounds(mut commands: Commands, window_query: Single<&Window, With<Prima
 
 fn update_bounds_on_resize(
 	mut bounds: ResMut<GameBounds>,
-	mut resize_events: EventReader<WindowResized>,
+	mut resize_events: MessageReader<WindowResized>,
 ) {
 	for event in resize_events.read() {
 		let window_size = Vec2::new(event.width, event.height);
@@ -95,10 +95,10 @@ fn update_bounds_on_resize(
 fn main() {
 	App::new()
 		.add_plugins((DefaultPlugins.set(create_window()), EmbeddedAssetPlugin))
-		.add_event::<PlayerBoundsImpact>()
-		.add_event::<PlayerFireWeapon>()
-		.add_event::<PlayerWeaponImpact>()
-		.add_event::<EnemyWeaponImpact>()
+		.add_message::<PlayerBoundsImpact>()
+		.add_message::<PlayerFireWeapon>()
+		.add_message::<PlayerWeaponImpact>()
+		.add_message::<EnemyWeaponImpact>()
 		.add_systems(
 			Startup,
 			(

@@ -20,7 +20,7 @@ use crate::{
 
 pub fn ammo_collision(
 	mut commands: Commands,
-	mut weapon_hit_event: EventWriter<PlayerWeaponImpact>,
+	mut weapon_hit_event: MessageWriter<PlayerWeaponImpact>,
 	player_query: Single<(&Transform, &mut ShipHealth), (With<Player>, Without<Enemy>)>,
 	mut enemy_query: Query<(Entity, &Transform, &mut ShipHealth), (With<Enemy>, Without<Player>)>,
 	ammo_query: Query<
@@ -62,7 +62,7 @@ pub fn ammo_collision(
 }
 
 pub fn bounds_collision(
-	mut bounds_impact_event: EventWriter<PlayerBoundsImpact>,
+	mut bounds_impact_event: MessageWriter<PlayerBoundsImpact>,
 	bounds: Res<GameBounds>,
 	player_query: Single<(&Transform, &mut ShipHealth, &BoundsDamage), With<Player>>,
 ) {
@@ -86,9 +86,9 @@ pub fn bounds_collision(
 }
 
 pub fn bounds_impact(
-	mut events: EventReader<PlayerBoundsImpact>,
+	mut events: MessageReader<PlayerBoundsImpact>,
 	gamepad_query_opt: Option<Single<Entity, With<Gamepad>>>,
-	mut rumble_requests: EventWriter<GamepadRumbleRequest>,
+	mut rumble_requests: MessageWriter<GamepadRumbleRequest>,
 ) {
 	if let Some(gamepad_entity) = gamepad_query_opt {
 		for _event in events.read() {
@@ -102,9 +102,9 @@ pub fn bounds_impact(
 }
 
 pub fn weapon_impact(
-	mut events: EventReader<PlayerWeaponImpact>,
+	mut events: MessageReader<PlayerWeaponImpact>,
 	gamepad_query_opt: Option<Single<Entity, With<Gamepad>>>,
-	mut rumble_requests: EventWriter<GamepadRumbleRequest>,
+	mut rumble_requests: MessageWriter<GamepadRumbleRequest>,
 ) {
 	if let Some(gamepad_entity) = gamepad_query_opt {
 		for _event in events.read() {

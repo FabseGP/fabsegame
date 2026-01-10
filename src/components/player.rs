@@ -66,13 +66,13 @@ fn default_player_weapon_cooldown() -> Timer {
 	Timer::from_seconds(SPACESHIP_WEAPON_COOLDOWN, TimerMode::Once)
 }
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct PlayerFireWeapon;
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct PlayerWeaponImpact;
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct PlayerBoundsImpact;
 
 #[derive(Component, Default)]

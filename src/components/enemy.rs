@@ -45,7 +45,7 @@ const fn default_enemy_max_speed() -> f32 {
 	ENEMY_SPEED
 }
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct EnemyWeaponImpact;
 
 #[derive(Component, Default)]
