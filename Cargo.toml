@@ -33,6 +33,9 @@ bevy = { git = "https://github.com/bevyengine/bevy" , default-features = false, 
 ] }
 log = { version = "*", features = ["max_level_debug", "release_max_level_warn"] }
 
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+getrandom = { version = "^0.3", features = ["wasm_js"] }
+
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy", default-features = false, features = [
     "bevy_animation",
